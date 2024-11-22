@@ -56,34 +56,33 @@ stages:
       runOnce:
         deploy:
           steps:
-          - download: 'current'
-            artifact: 'manifests'
+          - download: current
+            artifact: manifests
           - task: KubernetesManifest@1
             displayName: 'Create imagePullSecret'
             inputs:
-              action: 'createSecret'
-              connectionType: 'azureResourceManager'
+              action: createSecret
+              connectionType: azureResourceManager
+              secretName: $(imagePullSecret)
+              dockerRegistryEndpoint: 'Container Registry Connection'
               azureSubscriptionConnection: 'Kubernetes Cluster Connection'
               azureResourceGroup: 'tailspin-space-game-rg'
               kubernetesCluster: 'tailspinspacegame-32127'
               namespace: 'default'
-              secretType: 'dockerRegistry'
-              secretName: '$(imagePullSecret)'
-              dockerRegistryEndpoint: 'Container Registry Connection'
           - task: KubernetesManifest@1
             displayName: 'Deploy to Kubernetes cluster'
             inputs:
-              action: 'deploy'
-              connectionType: 'azureResourceManager'
+              action: deploy
+              connectionType: azureResourceManager
               azureSubscriptionConnection: 'Kubernetes Cluster Connection'
               azureResourceGroup: 'tailspin-space-game-rg'
               kubernetesCluster: 'tailspinspacegame-32127'
               namespace: 'default'
               manifests: |
-                $(Pipeline.Workspace)/manifests/deployment.yml 
-                $(Pipeline.Workspace)/manifests/service.yml'
+                $(Pipeline.Workspace)/manifests/deployment.yml
+                $(Pipeline.Workspace)/manifests/service.yml
+              imagePullSecrets: |
+                $(imagePullSecret)
               containers: |
                 $(RegistryName)/$(webRepository):$(tag)
                 $(RegistryName)/$(leaderboardRepository):$(tag)
-              imagePullSecrets: '$(imagePullSecret)'
-            
